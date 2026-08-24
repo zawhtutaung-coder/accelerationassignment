@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RWD vs AWD Acceleration Comparison</title>
+<style>
+:root{
+  --bg:#050505; --panel:#0d0e11; --panel2:#141519; --border:#2a2c32;
+  --text:#f4f4f5; --muted:#a9abb2; --orange:#ff6a2a; --blue:#58a6ff;
+  --red:#ff6048; --green:#48d597;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at top,#1c0b04 0,#090909 30%,#050505 70%)}
+.container{max-width:1450px;margin:auto;padding:22px}
+.header{border:1px solid #512112;background:linear-gradient(135deg,#121212,#090909);border-radius:22px;padding:22px 26px;margin-bottom:20px}
+.small-title{color:#ff915d;font-size:12px;font-weight:800;letter-spacing:2px}
+.header h1{margin:7px 0 5px;font-size:clamp(30px,4vw,50px)}
+.header p{margin:0;color:var(--muted)}
+.name{margin-top:12px;color:#ffd0bd;font-weight:700}
+.layout{display:grid;grid-template-columns:390px 1fr;gap:20px}
+@media(max-width:950px){.layout{grid-template-columns:1fr}}
+.panel{background:rgba(13,14,17,.97);border:1px solid var(--border);border-radius:20px;padding:20px}
+.panel-title{margin:0 0 16px;font-size:20px}
+.vehicle-card{background:#090a0c;border:1px solid var(--border);border-radius:17px;padding:15px;margin-bottom:16px}
+.vehicle-card h3{margin:0 0 12px;font-size:21px}
+.rwd h3{color:var(--blue)} .awd h3{color:var(--red)}
+label{display:block;color:#bbbcc3;font-size:13px;margin-top:11px;margin-bottom:5px}
+.input-row{display:grid;grid-template-columns:1fr 90px;gap:8px}
+input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #35373e;background:#131419;color:white;font-size:16px}
+input:focus{outline:2px solid var(--orange);border-color:transparent}
+.unit{display:flex;justify-content:center;align-items:center;border-radius:10px;background:#191a20;border:1px solid #30323a;color:#c8c9ce;font-size:13px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+button{border:0;border-radius:11px;padding:12px;font-size:15px;font-weight:800;cursor:pointer;color:white}
+.calculate{background:linear-gradient(135deg,#ff4c14,#ff773d)}
+.reset{background:#1b1c21;border:1px solid #35373e}
+button:hover{opacity:.90}
+.info{margin-top:15px;padding:13px;background:#0a1520;border:1px solid #1e3852;color:#add3ff;border-radius:12px;font-size:12px}
+.status{min-height:20px;margin-top:9px;color:#bbb;font-size:12px}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:680px){.results{grid-template-columns:1fr}}
+.result-card{border-radius:18px;padding:22px;background:#090a0c}
+.result-rwd{border:1px solid #275184}.result-awd{border:1px solid #773123}
+.result-name{font-size:13px;font-weight:900;letter-spacing:1.5px}
+.result-rwd .result-name,.result-rwd .time{color:var(--blue)}
+.result-awd .result-name,.result-awd .time{color:var(--red)}
+.time{margin-top:7px;font-weight:900;font-size:clamp(38px,5vw,62px)}
+.result-text{color:#c5c5ca;font-size:14px}
+.fastest{color:var(--green);font-weight:800;margin-top:7px;min-height:20px}
+.animation-panel{border:1px solid var(--border);background:#08090b;border-radius:18px;overflow:hidden}
+.animation-header{padding:14px 17px;display:flex;justify-content:space-between;gap:15px;align-items:center;border-bottom:1px solid var(--border)}
+.animation-header h3{margin:0;font-size:17px}
+.target{background:#21120d;border:1px solid #512416;padding:7px 11px;border-radius:999px;font-size:13px}
+.race-track{position:relative;height:220px;overflow:hidden;background:linear-gradient(#08090b 0%,#08090b 11%,#16191d 11%,#16191d 49%,#0c1117 49%,#0c1117 51%,#16191d 51%,#16191d 89%,#08090b 89%)}
+.race-track::before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:repeating-linear-gradient(to right,#aaa 0,#aaa 30px,transparent 30px,transparent 60px)}
+.lane{position:absolute;left:0;width:100%;height:50%}
+.rwd-lane{top:0}.awd-lane{bottom:0}
+.lane-title{position:absolute;top:8px;left:14px;font-weight:900}
+.rwd-title{color:var(--blue)}.awd-title{color:var(--red)}
+.finish-line{position:absolute;top:0;bottom:0;right:6%;width:6px;z-index:3;background:repeating-linear-gradient(to bottom,white 0,white 8px,#222 8px,#222 16px)}
+.finish-label{position:absolute;right:3%;top:6px;z-index:4;font-size:11px;color:white}
+.car{position:absolute;width:130px;height:55px;left:3%;top:50%;transform:translateY(-30%);will-change:transform}
+.car svg{width:100%;height:100%;filter:drop-shadow(0px 6px 5px rgba(0,0,0,.7))}
+.speed{position:absolute;right:8%;bottom:9px;background:#08090b;border:1px solid #30323a;padding:5px 8px;border-radius:8px;font-size:12px}
+.speed-rwd{color:var(--blue)}.speed-awd{color:var(--red)}
+.progress-area{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:15px 18px;border-top:1px solid var(--border);background:#0c0d10}
+@media(max-width:650px){.progress-area{grid-template-columns:1fr}}
+.progress-top{display:flex;justify-content:space-between;font-size:12px;color:#ccc;margin-bottom:6px}
+.progress-track{height:9px;border-radius:99px;overflow:hidden;background:#292b31}
+.progress-fill{height:100%;width:0%;border-radius:99px}
+.rwd-progress{background:var(--blue)}.awd-progress{background:var(--red)}
+.explanation{margin-top:18px;border:1px solid var(--border);background:#090a0c;border-radius:15px;padding:15px;color:#c9c9ce;font-size:13px}
+.formula{margin-top:10px;background:#111217;border-radius:10px;padding:10px;text-align:center;font-family:Cambria Math,Georgia,serif;font-size:17px;color:#ffd1be}
+footer{text-align:center;color:#777;padding:30px 10px 10px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="small-title">VEHICLE ACCELERATION ASSIGNMENT • INTERACTIVE COMPARISON</div>
+    <h1>RWD vs AWD Acceleration</h1>
+    <p>Change the vehicle parameters and compare how long each drivetrain requires to reach the selected target speed.</p>
+    <div class="name">Zaw Htut Aung • KMUTT 6 • TAIST 2025</div>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <h2 class="panel-title">Input Parameters</h2>
+
+      <div class="vehicle-card rwd">
+        <h3>RWD</h3>
+        <label for="rwdMass">Vehicle Mass</label>
+        <div class="input-row"><input id="rwdMass" type="number" value="1073" min="1" step="1"><div class="unit">kg</div></div>
+
+        <label for="rwdForce">Actual Launch Force</label>
+        <div class="input-row"><input id="rwdForce" type="number" value="5.77" min="0.01" step="0.01"><div class="unit">kN</div></div>
+
+        <label for="rwdAccel">Initial Acceleration</label>
+        <div class="input-row"><input id="rwdAccel" type="number" value="5.26" min="0.01" step="0.01"><div class="unit">m/s²</div></div>
+      </div>
+
+      <div class="vehicle-card awd">
+        <h3>AWD</h3>
+        <label for="awdMass">Vehicle Mass</label>
+        <div class="input-row"><input id="awdMass" type="number" value="1143" min="1" step="1"><div class="unit">kg</div></div>
+
+        <label for="awdForce">Actual Launch Force</label>
+        <div class="input-row"><input id="awdForce" type="number" value="7.76" min="0.01" step="0.01"><div class="unit">kN</div></div>
+
+        <label for="awdAccel">Initial Acceleration</label>
+        <div class="input-row"><input id="awdAccel" type="number" value="6.67" min="0.01" step="0.01"><div class="unit">m/s²</div></div>
+      </div>
+
+      <label for="targetSpeed">Target Speed</label>
+      <div class="input-row"><input id="targetSpeed" type="number" value="219" min="1" max="219" step="1"><div class="unit">km/h</div></div>
+
+      <div class="buttons">
+        <button class="calculate" id="calculateBtn" type="button">Calculate & Animate</button>
+        <button class="reset" id="resetBtn" type="button">Reset</button>
+      </div>
+
+      <div class="status" id="status"></div>
+
+      <div class="info">
+        This updated model applies exactly the same equations to RWD and AWD.
+        If both vehicles have identical mass, force and acceleration, their required time will also be identical.
+        Higher usable acceleration gives a shorter time to the target speed.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="results">
+        <div class="result-card result-rwd">
+          <div class="result-name">RWD REQUIRED TIME</div>
+          <div class="time" id="rwdTime">0.00 s</div>
+          <div class="result-text" id="rwdResultText">to reach 219 km/h</div>
+          <div class="fastest" id="rwdWinner"></div>
+        </div>
+
+        <div class="result-card result-awd">
+          <div class="result-name">AWD REQUIRED TIME</div>
+          <div class="time" id="awdTime">0.00 s</div>
+          <div class="result-text" id="awdResultText">to reach 219 km/h</div>
+          <div class="fastest" id="awdWinner"></div>
+        </div>
+      </div>
+
+      <div class="animation-panel">
+        <div class="animation-header">
+          <h3>Acceleration Animation</h3>
+          <div class="target">Target: <b id="targetDisplay">219 km/h</b></div>
+        </div>
+
+        <div class="race-track">
+          <div class="finish-line"></div>
+          <div class="finish-label">TARGET</div>
+
+          <div class="lane rwd-lane">
+            <div class="lane-title rwd-title">RWD</div>
+            <div class="car" id="rwdCar">
+              <svg viewBox="0 0 140 60" aria-hidden="true">
+                <path d="M12 37 L21 25 Q25 19 38 18 L79 15 Q90 15 100 22 L113 31 L127 34 Q134 35 134 40 L134 44 L7 44 L7 40 Q7 37 12 37 Z" fill="#58a6ff"/>
+                <path d="M40 20 L78 18 Q86 18 95 25 L101 31 L31 31 L36 23 Q38 21 40 20 Z" fill="#17334d"/>
+                <circle cx="37" cy="44" r="10" fill="#111"/><circle cx="37" cy="44" r="5" fill="#c8ccd2"/>
+                <circle cx="107" cy="44" r="10" fill="#111"/><circle cx="107" cy="44" r="5" fill="#c8ccd2"/>
+              </svg>
+            </div>
+            <div class="speed speed-rwd" id="rwdSpeed">0 km/h</div>
+          </div>
+
+          <div class="lane awd-lane">
+            <div class="lane-title awd-title">AWD</div>
+            <div class="car" id="awdCar">
+              <svg viewBox="0 0 140 60" aria-hidden="true">
+                <path d="M12 37 L21 25 Q25 19 38 18 L79 15 Q90 15 100 22 L113 31 L127 34 Q134 35 134 40 L134 44 L7 44 L7 40 Q7 37 12 37 Z" fill="#ff6048"/>
+                <path d="M40 20 L78 18 Q86 18 95 25 L101 31 L31 31 L36 23 Q38 21 40 20 Z" fill="#4b1d18"/>
+                <circle cx="37" cy="44" r="10" fill="#111"/><circle cx="37" cy="44" r="5" fill="#c8ccd2"/>
+                <circle cx="107" cy="44" r="10" fill="#111"/><circle cx="107" cy="44" r="5" fill="#c8ccd2"/>
+              </svg>
+            </div>
+            <div class="speed speed-awd" id="awdSpeed">0 km/h</div>
+          </div>
+        </div>
+
+        <div class="progress-area">
+          <div>
+            <div class="progress-top"><span>RWD Progress</span><span id="rwdPercent">0%</span></div>
+            <div class="progress-track"><div class="progress-fill rwd-progress" id="rwdProgress"></div></div>
+          </div>
+          <div>
+            <div class="progress-top"><span>AWD Progress</span><span id="awdPercent">0%</span></div>
+            <div class="progress-track"><div class="progress-fill awd-progress" id="awdProgress"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="explanation">
+        <b>Calculation used in this interactive comparison</b>
+        <p>
+          The launch force and vehicle mass give a force-based acceleration.
+          The program compares this value with the entered initial acceleration and uses the lower value as the usable starting acceleration.
+          Acceleration is then gradually reduced as vehicle speed increases to represent the increasing difficulty of accelerating at high speed.
+        </p>
+        <div class="formula">
+          a<sub>force</sub> = F<sub>launch</sub> / m
+          <br><br>
+          a(v) = a<sub>0</sub> / (1 + k v²)
+        </div>
+        <p>
+          Because the same model is used for both drivetrains, AWD will reach the target sooner whenever its usable acceleration is high enough to overcome its additional mass.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <footer>Interactive Vehicle Acceleration Comparison<br>Zaw Htut Aung • KMUTT 6 • TAIST 2025</footer>
+</div>
+
+<script>
+(function(){
+  function $(id){ return document.getElementById(id); }
+
+  const defaults = {
+    rwdMass:1073, rwdForce:5.77, rwdAccel:5.26,
+    awdMass:1143, awdForce:7.76, awdAccel:6.67,
+    targetSpeed:219
+  };
+
+  const K = 0.002;
+  let animationFrame = null;
+
+  function readNumber(id, fallback){
+    let value = Number($(id).value);
+    if(!Number.isFinite(value) || value <= 0) return fallback;
+    return value;
+  }
+
+  function calculateEffectiveAcceleration(mass, forceKN, enteredAcceleration){
+    const forceN = forceKN * 1000;
+    const accelerationFromForce = forceN / mass;
+    const effectiveAcceleration = Math.min(accelerationFromForce, enteredAcceleration);
+    return { effectiveAcceleration, accelerationFromForce };
+  }
+
+  function calculateTime(targetSpeedKMH, initialAcceleration){
+    const targetSpeed = targetSpeedKMH / 3.6;
+    const steps = 3000;
+    const dv = targetSpeed / steps;
+    let time = 0;
+
+    for(let i = 0; i < steps; i++){
+      const velocity = (i + 0.5) * dv;
+      const acceleration = initialAcceleration / (1 + K * velocity * velocity);
+      time += dv / acceleration;
+    }
+    return time;
+  }
+
+  function calculate(){
+    const rwdMass = readNumber("rwdMass", defaults.rwdMass);
+    const rwdForce = readNumber("rwdForce", defaults.rwdForce);
+    const rwdEnteredAcceleration = readNumber("rwdAccel", defaults.rwdAccel);
+
+    const awdMass = readNumber("awdMass", defaults.awdMass);
+    const awdForce = readNumber("awdForce", defaults.awdForce);
+    const awdEnteredAcceleration = readNumber("awdAccel", defaults.awdAccel);
+
+    let targetSpeed = readNumber("targetSpeed", defaults.targetSpeed);
+    targetSpeed = Math.min(219, Math.max(1, targetSpeed));
+    $("targetSpeed").value = targetSpeed;
+
+    const rwdData = calculateEffectiveAcceleration(rwdMass, rwdForce, rwdEnteredAcceleration);
+    const awdData = calculateEffectiveAcceleration(awdMass, awdForce, awdEnteredAcceleration);
+
+    const rwdTime = calculateTime(targetSpeed, rwdData.effectiveAcceleration);
+    const awdTime = calculateTime(targetSpeed, awdData.effectiveAcceleration);
+
+    $("rwdTime").textContent = rwdTime.toFixed(2) + " s";
+    $("awdTime").textContent = awdTime.toFixed(2) + " s";
+    $("rwdResultText").textContent = "to reach " + targetSpeed.toFixed(0) + " km/h";
+    $("awdResultText").textContent = "to reach " + targetSpeed.toFixed(0) + " km/h";
+    $("targetDisplay").textContent = targetSpeed.toFixed(0) + " km/h";
+
+    $("rwdWinner").textContent = "";
+    $("awdWinner").textContent = "";
+
+    const difference = Math.abs(rwdTime - awdTime);
+    if(difference < 0.01){
+      $("rwdWinner").textContent = "Same required time";
+      $("awdWinner").textContent = "Same required time";
+    } else if(rwdTime < awdTime){
+      $("rwdWinner").textContent = "✓ Faster to target";
+    } else {
+      $("awdWinner").textContent = "✓ Faster to target";
+    }
+
+    $("status").textContent = "Calculation complete — animation started.";
+    animateCars(rwdTime, awdTime, targetSpeed);
+  }
+
+  function motionCurve(progress){
+    progress = Math.max(0, Math.min(1, progress));
+    return 1 - Math.pow(1 - progress, 1.5);
+  }
+
+  function animateCars(rwdTime, awdTime, targetSpeed){
+    if(animationFrame) cancelAnimationFrame(animationFrame);
+
+    $("rwdCar").style.transform = "translate(0%, -30%)";
+    $("awdCar").style.transform = "translate(0%, -30%)";
+    $("rwdProgress").style.width = "0%";
+    $("awdProgress").style.width = "0%";
+    $("rwdPercent").textContent = "0%";
+    $("awdPercent").textContent = "0%";
+    $("rwdSpeed").textContent = "0 km/h";
+    $("awdSpeed").textContent = "0 km/h";
+
+    const maximumTime = Math.max(rwdTime, awdTime);
+    const animationDuration = Math.min(9000, Math.max(4500, maximumTime * 120));
+    const startTime = performance.now();
+
+    function frame(now){
+      const realProgress = Math.min(1, (now - startTime) / animationDuration);
+      const simulatedTime = realProgress * maximumTime;
+
+      const rwdProgress = Math.min(1, simulatedTime / rwdTime);
+      const awdProgress = Math.min(1, simulatedTime / awdTime);
+
+      const rwdMotion = motionCurve(rwdProgress);
+      const awdMotion = motionCurve(awdProgress);
+
+      $("rwdCar").style.transform = "translate(" + (rwdMotion * 720) + "%, -30%)";
+      $("awdCar").style.transform = "translate(" + (awdMotion * 720) + "%, -30%)";
+
+      $("rwdSpeed").textContent = Math.round(targetSpeed * rwdMotion) + " km/h";
+      $("awdSpeed").textContent = Math.round(targetSpeed * awdMotion) + " km/h";
+
+      const rwdPercentage = Math.round(rwdProgress * 100);
+      const awdPercentage = Math.round(awdProgress * 100);
+
+      $("rwdProgress").style.width = rwdPercentage + "%";
+      $("awdProgress").style.width = awdPercentage + "%";
+      $("rwdPercent").textContent = rwdPercentage + "%";
+      $("awdPercent").textContent = awdPercentage + "%";
+
+      if(realProgress < 1){
+        animationFrame = requestAnimationFrame(frame);
+      } else {
+        $("rwdSpeed").textContent = Math.round(targetSpeed) + " km/h";
+        $("awdSpeed").textContent = Math.round(targetSpeed) + " km/h";
+        $("rwdProgress").style.width = "100%";
+        $("awdProgress").style.width = "100%";
+        $("rwdPercent").textContent = "100%";
+        $("awdPercent").textContent = "100%";
+        $("status").textContent = "Target speed reached.";
+        animationFrame = null;
+      }
+    }
+
+    animationFrame = requestAnimationFrame(frame);
+  }
+
+  $("calculateBtn").addEventListener("click", calculate);
+
+  $("resetBtn").addEventListener("click", function(){
+    if(animationFrame) cancelAnimationFrame(animationFrame);
+    Object.entries(defaults).forEach(function(entry){
+      $(entry[0]).value = entry[1];
+    });
+    calculate();
+  });
+
+  ["rwdMass","rwdForce","rwdAccel","awdMass","awdForce","awdAccel","targetSpeed"].forEach(function(id){
+    $(id).addEventListener("input", function(){
+      $("status").textContent = 'Values changed — press "Calculate & Animate".';
+    });
+  });
+
+  calculate();
+})();
+</script>
+</body>
+</html>
